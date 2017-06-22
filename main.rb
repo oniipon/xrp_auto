@@ -65,10 +65,10 @@ loop do
         end
 
 
-      puts 'リップル！売るよ！'
+   #   puts 'リップル！売るよ！'
 
     else
-      puts 'リップル売らないよ！'
+   #   puts 'リップル売らないよ！'
       log.info("リップル売らないよ レートは#{xrp_rate['rate']} 日時は#{now.strftime('%Y/%m/%d %H:%M:%S')}")
     end
 
@@ -82,13 +82,13 @@ loop do
                      market_buy_amount:'10000',
                      pair:Pair::XRP_JPY
     )
-    puts 'リップル買うよ！'
+  #  puts 'リップル買うよ！'
   else
-    puts 'リップル買わないよ！'
+  #  puts 'リップル買わないよ！'
     log.info("リップル買わないよ レートは#{xrp_rate['rate']} 日時は#{now.strftime('%Y/%m/%d %H:%M:%S')}")
   end
 
-  puts xrp_rate['rate']
+  #puts xrp_rate['rate']
 
   sleep 1
 
