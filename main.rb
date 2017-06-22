@@ -4,16 +4,17 @@ require 'uri'
 require 'openssl'
 require 'logger'
 require './currency'
+require 'date'
 
 API_KEY = ENV['coincheck_api_key']
 SECRET_KEY = ENV['coincheck_secret_key']
 BASE_URL ='https://coincheck.jp/'
 SSL_FLAG = true
-BUY_CONDICTIONS = 32
-SELL_CONDICTIONS = 37
+BUY_CONDICTIONS = 30
+SELL_CONDICTIONS = 35
 LOG_WRITE_PATH = './'
 
-log = Logger.new("#{Date.today.year.to_s + Date.today.month.to_s}out.log")
+log = Logger.new("#{Date.today.to_s.gsub(/-/,'')}out.log")
 
 #既存のライブラリに無かったので追加しました
 class CoincheckClient
@@ -29,54 +30,66 @@ cc = CoincheckClient.new(API_KEY, SECRET_KEY,
                                   {base_url: BASE_URL,
                                    ssl:SSL_FLAG
                                   })
-
-#リップルの現在のレート
-response = cc.read_rate(Pair::XRP_JPY)
-xrp_rate = JSON.parse(response.body)
-
-#所持リップル数
-xrp_balance = JSON.parse(cc.read_balance.body)
-has_xrp = xrp_balance['xrp']
+#無限ループすっぞ
+loop do
 
 
-#売る時
-if has_xrp != 0
+  #リップルの現在のレート
+  response = cc.read_rate(Pair::XRP_JPY)
+  xrp_rate = JSON.parse(response.body)
 
-  if BigDecimal(xrp_rate['rate']) > SELL_CONDICTIONS
-
-    response = cc.create_orders(order_type:"sell",
-                         rate:SELL_CONDICTIONS,
-                         amount:has_xrp,
-                         pair:Pair::XRP_JPY)
-      j  = JSON.parse(response.body)
-
-      if j['succes']
-        log.info("【売】 リップル売りました idは#{j['id']} レートは#{j['rate']} 量は#{j['amount']}  日時は#{j['created_at']}")
-        balance_json = JSON.parse(cc.read_balance.body)
-        log.info("【売】 現在残高（円）は #{balance_json['jpy']}")
-      else
-        log.error("【エラー】　よくわからないけどたぶんエラーです #{j}" )
-      end
+  #所持リップル数
+  xrp_balance = JSON.parse(cc.read_balance.body)
+  has_xrp = xrp_balance['xrp']
+  #レート取得時刻
+  now = Time.now
 
 
-    puts 'リップル！売るよ！'
-  else
-    puts 'リップル売らないよ！'
+  #売る時
+  if has_xrp != 0
+
+    if BigDecimal(xrp_rate['rate']) > SELL_CONDICTIONS
+
+      response = cc.create_orders(order_type:"sell",
+                           rate:SELL_CONDICTIONS,
+                           amount:has_xrp,
+                           pair:Pair::XRP_JPY)
+        j  = JSON.parse(response.body)
+
+        if j['succes']
+          log.info("【売】 リップル売りました idは#{j['id']} レートは#{j['rate']} 量は#{j['amount']}  日時は#{j['created_at']}")
+          balance_json = JSON.parse(cc.read_balance.body)
+          log.info("【売】 現在残高（円）は #{balance_json['jpy']}")
+        else
+          log.error("【エラー】　よくわからないけどたぶんエラーです #{j}" )
+        end
+
+
+      puts 'リップル！売るよ！'
+
+    else
+      puts 'リップル売らないよ！'
+      log.info("リップル売らないよ レートは#{xrp_rate['rate']} 日時は#{now.strftime('%Y/%m/%d %H:%M:%S')}")
+    end
+
   end
 
+
+  #買う時
+  if BigDecimal(xrp_rate['rate']) < BUY_CONDICTIONS
+     cc.create_orders(order_type:"market_buy_amount ",
+                      rate:BUY_CONDICTIONS,
+                     market_buy_amount:'10000',
+                     pair:Pair::XRP_JPY
+    )
+    puts 'リップル買うよ！'
+  else
+    puts 'リップル買わないよ！'
+    log.info("リップル買わないよ レートは#{xrp_rate['rate']} 日時は#{now.strftime('%Y/%m/%d %H:%M:%S')}")
+  end
+
+  puts xrp_rate['rate']
+
+  sleep 1
+
 end
-
-
-#買う時
-if BigDecimal(xrp_rate['rate']) < BUY_CONDICTIONS
-   cc.create_orders(order_type:"market_buy_amount ",
-                    rate:BUY_CONDICTIONS,
-                   market_buy_amount:'10000',
-                   pair:Pair::XRP_JPY
-  )
-  puts 'リップル買うよ！'
-else
-  puts 'リップル買わないよ！'
-end
-
-puts xrp_rate['rate']
