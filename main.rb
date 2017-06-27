@@ -14,7 +14,10 @@ BUY_CONDICTIONS = 30
 SELL_CONDICTIONS = 35
 LOG_WRITE_PATH = './'
 
-log = Logger.new("#{Date.today.to_s.gsub(/-/,'')}out.log")
+log = Logger.new("out.log",'daily')
+
+begin
+
 
 #既存のライブラリに無かったので追加しました
 class CoincheckClient
@@ -92,4 +95,13 @@ loop do
 
   sleep 1
 
+
+end
+
+rescue => e
+  log.error("なんかエラーだって#{Time.now.strftime('%Y/%m/%d %H:%M:%S')}")
+  log.error(e.class)
+  log.error(e.message)
+  log.error(e.backtrace)
+  log.error("なんかエラーここまで")
 end
