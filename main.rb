@@ -16,7 +16,7 @@ LOG_WRITE_PATH = './'
 
 log = Logger.new("out.log",'daily')
 
-begin
+
 
 
 #既存のライブラリに無かったので追加しました
@@ -36,7 +36,7 @@ cc = CoincheckClient.new(API_KEY, SECRET_KEY,
 #無限ループすっぞ
 loop do
 
-
+  begin
   #リップルの現在のレート
   response = cc.read_rate(Pair::XRP_JPY)
   xrp_rate = JSON.parse(response.body)
@@ -91,17 +91,16 @@ loop do
     log.info("リップル買わないよ レートは#{xrp_rate['rate']} 日時は#{now.strftime('%Y/%m/%d %H:%M:%S')}")
   end
 
-  #puts xrp_rate['rate']
+  rescue => e
+    log.error("なんかエラーだって#{Time.now.strftime('%Y/%m/%d %H:%M:%S')}")
+    log.error(e.class)
+    log.error(e.message)
+    log.error(e.backtrace)
+    log.error("なんかエラーここまで")
+  end
 
   sleep 1
 
 
 end
 
-rescue => e
-  log.error("なんかエラーだって#{Time.now.strftime('%Y/%m/%d %H:%M:%S')}")
-  log.error(e.class)
-  log.error(e.message)
-  log.error(e.backtrace)
-  log.error("なんかエラーここまで")
-end
