@@ -25,8 +25,7 @@ class CoincheckClientCustom < CoincheckClient
 
   private
   def get_signature(uri, key, secret, body = "")
-    nonce = Time.now.to_i.to_s
-    puts nonce
+    nonce = Time.now.to_i.to_s + format('%06d', Time.now.usec)
     message = nonce + uri.to_s + body
     signature = OpenSSL::HMAC.hexdigest(OpenSSL::Digest.new("sha256"), secret, message)
     headers = {
