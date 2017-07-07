@@ -17,16 +17,33 @@ LOG_WRITE_PATH = './'
 
 log = Logger.new('out.log', 'daily')
 
-# 既存のライブラリに無かったので追加しました
-class CoincheckClient
+class CoincheckClientCustom < CoincheckClient
   def read_rate(pair)
     uri = URI.parse BASE_URL + "/api/rate/#{pair}"
     request_for_get(uri)
   end
+
+  private
+  def get_signature(uri, key, secret, body = "")
+    nonce = Time.now.to_i.to_s
+    puts nonce
+    message = nonce + uri.to_s + body
+    signature = OpenSSL::HMAC.hexdigest(OpenSSL::Digest.new("sha256"), secret, message)
+    headers = {
+        "Content-Type" => "application/json",
+        "ACCESS-KEY" => key,
+        "ACCESS-NONCE" => nonce,
+        "ACCESS-SIGNATURE" => signature
+    }
+  end
 end
 
+# 既存のライブラリに無かったので追加しました
 
-cc = CoincheckClient.new(API_KEY, SECRET_KEY,
+
+
+
+cc = CoincheckClientCustom.new(API_KEY, SECRET_KEY,
                          {base_url: BASE_URL,
                           ssl: SSL_FLAG})
 #無限ループすっぞ
