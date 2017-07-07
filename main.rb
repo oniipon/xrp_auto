@@ -71,7 +71,7 @@ loop do
 
     #買う時
     if BigDecimal(xrp_rate['rate']) < BUY_CONDITIONS
-      response = cc.create_orders(order_type: "market_buy_amount ",
+      response = cc.create_orders(order_type: 'market_buy_amount',
                                   rate: BUY_CONDITIONS,
                                   market_buy_amount: '10000',
                                   pair: Pair::XRP_JPY)
@@ -92,7 +92,7 @@ loop do
     log.error(e.class)
     log.error(e.message)
     log.error(e.backtrace)
-    log.error("なんかエラーここまで")
+    log.error('なんかエラーここまで')
   end
   sleep 1
 end
