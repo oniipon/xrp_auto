@@ -94,6 +94,6 @@ loop do
     log.error(e.backtrace)
     log.error('なんかエラーここまで')
   end
-  sleep 1
+  sleep 10
 end
 
